@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能垃圾分类存储机器人</title>
+    <style>
+        :root {
+            --bg-primary: #080d18;
+            --bg-card: #111827;
+            --text-primary: #e8eaed;
+            --text-secondary: #a0aab4;
+            --accent-cyan: #00e5ff;
+            --glow-cyan: rgba(0,229,255,0.3);
+            --border-subtle: rgba(255,255,255,0.06);
+            --font-display: 'Orbitron','Noto Sans SC',sans-serif;
+            --font-body: 'Noto Sans SC','Segoe UI',sans-serif;
+            --font-mono: 'JetBrains Mono','Courier New',monospace;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        html{scroll-behavior:smooth;font-size:16px;}
+        body{font-family:var(--font-body);background-color:var(--bg-primary);color:var(--text-primary);line-height:1.6;overflow-x:hidden;position:relative;}
+        .bg-grid{position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:0;opacity:0.04;background-image:linear-gradient(rgba(255,255,255,0.3) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.3) 1px,transparent 1px);background-size:50px 50px;animation:gridScroll 20s linear infinite;}
+        @keyframes gridScroll{0%{background-position:0 0;}100%{background-position:50px 50px;}}
+        .bg-particles{position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:0;overflow:hidden;}
+        .bg-particles span{position:absolute;width:2px;height:2px;background:var(--accent-cyan);border-radius:50%;animation:floatUp linear infinite;opacity:0;}
+        .bg-particles span:nth-child(1){left:10%;animation-duration:12s;}
+        .bg-particles span:nth-child(2){left:25%;animation-duration:15s;animation-delay:2s;}
+        .bg-particles span:nth-child(3){left:40%;animation-duration:10s;animation-delay:4s;}
+        .bg-particles span:nth-child(4){left:55%;animation-duration:18s;animation-delay:1s;}
+        .bg-particles span:nth-child(5){left:70%;animation-duration:14s;animation-delay:3s;}
+        .bg-particles span:nth-child(6){left:85%;animation-duration:11s;animation-delay:5s;}
+        .bg-particles span:nth-child(7){left:15%;animation-duration:16s;animation-delay:6s;}
+        .bg-particles span:nth-child(8){left:60%;animation-duration:13s;animation-delay:7s;}
+        .bg-particles span:nth-child(9){left:35%;animation-duration:17s;animation-delay:8s;}
+        .bg-particles span:nth-child(10){left:80%;animation-duration:19s;animation-delay:9s;}
+        @keyframes floatUp{0%{transform:translateY(100vh) scale(1);opacity:0;}10%{opacity:0.8;}90%{opacity:0.2;}100%{transform:translateY(-10vh) scale(0.5);opacity:0;}}
+
+        .top-nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(8,13,24,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,229,255,0.15);padding:0 5%;display:flex;align-items:center;justify-content:space-between;height:60px;}
+        .nav-brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;}
+        .nav-logo{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--accent-cyan),#2979ff);display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 0 16px var(--glow-cyan);}
+        .nav-title{font-family:var(--font-display);font-size:1.1rem;font-weight:600;letter-spacing:1.5px;}
+        .nav-title span{color:var(--accent-cyan);}
+        .nav-actions{display:flex;align-items:center;gap:16px;}
+        .nav-link{color:var(--text-secondary);text-decoration:none;font-size:0.9rem;font-family:var(--font-mono);padding:6px 12px;border-radius:6px;transition:0.2s;}
+        .nav-link:hover{color:var(--accent-cyan);background:rgba(0,229,255,0.08);}
+        .lang-switch-btn{background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.3);color:var(--accent-cyan);padding:7px 16px;border-radius:20px;cursor:pointer;font-family:var(--font-mono);font-size:0.8rem;transition:0.2s;}
+        .lang-switch-btn:hover{background:rgba(0,229,255,0.18);box-shadow:0 0 18px var(--glow-cyan);}
+
+        .hero-carousel{padding:80px 5% 20px;}
+        .carousel-container{position:relative;max-width:1200px;margin:0 auto;border-radius:20px;overflow:hidden;aspect-ratio:16/7;min-height:380px;box-shadow:0 20px 60px rgba(0,0,0,0.6),0 0 40px var(--glow-cyan);border:1px solid var(--border-subtle);}
+        .carousel-slide{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;transition:opacity 0.8s;pointer-events:none;background:linear-gradient(135deg,#0a0f1e 0%,#0d1b2a 40%,#0a1628 100%);}
+        .carousel-slide.active{opacity:1;pointer-events:auto;}
+        .carousel-slide .slide-media{display:flex;width:100%;height:100%;}
+        .carousel-slide img{object-fit:cover;display:block;}
+        .slide-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(to right,rgba(8,13,24,0.88) 0%,rgba(8,13,24,0.55) 35%,rgba(8,13,24,0.25) 65%,rgba(8,13,24,0.05) 100%);z-index:2;}
+        .slide-content{position:absolute;left:7%;top:50%;transform:translateY(-50%);z-index:3;max-width:50%;}
+        .slide-tag{display:inline-block;padding:4px 14px;background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.35);border-radius:20px;font-size:0.75rem;color:var(--accent-cyan);font-family:var(--font-mono);letter-spacing:1.5px;margin-bottom:16px;text-transform:uppercase;}
+        .slide-title{font-family:var(--font-display);font-size:clamp(1.6rem,3.5vw,2.8rem);font-weight:700;color:#fff;text-shadow:0 0 30px rgba(0,229,255,0.5);margin-bottom:10px;letter-spacing:2px;line-height:1.2;}
+        .slide-desc{font-size:clamp(0.9rem,1.3vw,1.15rem);color:#b0bec5;margin-bottom:20px;}
+        .slide-line{width:50px;height:3px;background:var(--accent-cyan);box-shadow:0 0 12px var(--accent-cyan);border-radius:2px;}
+        .carousel-scan-line{position:absolute;top:0;left:0;width:100%;height:2px;background:rgba(0,229,255,0.3);z-index:5;animation:scanDown 4s ease-in-out infinite;pointer-events:none;}
+        @keyframes scanDown{0%,100%{top:0%;opacity:0.2;}50%{top:98%;opacity:0.7;}}
+        .carousel-btn{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:1.3rem;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+        .carousel-btn:hover{background:rgba(0,229,255,0.25);border-color:var(--accent-cyan);box-shadow:0 0 20px var(--glow-cyan);}
+        .carousel-btn.prev{left:16px;}
+        .carousel-btn.next{right:16px;}
+        .carousel-dots{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:10;}
+        .dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.35);cursor:pointer;transition:0.2s;}
+        .dot.active{background:var(--accent-cyan);box-shadow:0 0 10px var(--accent-cyan);width:28px;border-radius:8px;}
+
+        .section-dark{position:relative;z-index:10;padding:50px 5%;max-width:1100px;margin:0 auto;}
+        .section-header{display:flex;align-items:center;gap:14px;margin-bottom:36px;padding-bottom:16px;border-bottom:1px solid var(--border-subtle);}
+        .section-icon{font-size:1.6rem;color:var(--accent-cyan);}
+        .section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;letter-spacing:2px;color:#fff;}
+        .section-header-line{flex:1;height:1px;background:linear-gradient(to right,var(--accent-cyan),transparent);margin-left:10px;}
+        .video-wrapper{position:relative;max-width:800px;margin:0 auto;border-radius:16px;overflow:hidden;box-shadow:0 0 40px rgba(0,229,255,0.12);border:1px solid var(--border-subtle);}
+        .video-wrapper video{width:100%;display:block;background:#000;}
+        .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px;}
+        .card{position:relative;background:var(--bg-card);border-radius:16px;padding:30px 22px;text-align:center;border:1px solid var(--border-subtle);transition:0.4s;overflow:hidden;}
+        .card:hover{transform:translateY(-6px);border-color:rgba(0,229,255,0.4);box-shadow:0 12px 32px rgba(0,0,0,0.5),0 0 30px var(--glow-cyan);}
+        .card-icon{font-size:2.5rem;margin-bottom:14px;display:block;}
+        .card h2{font-family:var(--font-display);font-size:1.1rem;font-weight:600;color:#fff;margin-bottom:8px;letter-spacing:1px;}
+        .card p{font-size:0.9rem;color:var(--text-secondary);line-height:1.5;}
+        .site-footer{position:relative;z-index:10;text-align:center;padding:30px 5%;color:var(--text-secondary);font-size:0.85rem;border-top:1px solid var(--border-subtle);margin-top:40px;}
+        .footer-line{width:60px;height:2px;background:var(--accent-cyan);margin:10px auto 0;opacity:0.5;}
+        @media(max-width:768px){
+            .carousel-container{aspect-ratio:16/10;min-height:260px;}
+            .slide-content{left:5%;max-width:70%;}
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-particles"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+
+    <nav class="top-nav">
+        <a href="index.html" class="nav-brand">
+            <div class="nav-logo">♻</div>
+            <div class="nav-title">Smart<span>Sort</span></div>
+        </a>
+        <div class="nav-actions">
+            <a href="index.html" class="nav-link" style="color:var(--accent-cyan);">首页</a>
+            <a href="about.html" class="nav-link" data-key="nav_about">关于</a>
+            <a href="team.html" class="nav-link" data-key="nav_team">团队</a>
+            <a href="philosophy.html" class="nav-link" data-key="nav_phil">理念</a>
+            <button class="lang-switch-btn" id="langBtn">🌐 English</button>
+        </div>
+    </nav>
+
+    <section class="hero-carousel">
+        <div class="carousel-container">
+            <!-- 第1张: 封面 -->
+            <div class="carousel-slide active">
+                <div class="slide-media"><img src="media/hero-cover.png" style="width:100%;height:100%;object-fit:cover;"></div>
+                <div class="slide-overlay"></div>
+                <div class="slide-content">
+                    <span class="slide-tag" data-key="s1_tag">智能分拣</span>
+                    <h1 class="slide-title" data-key="s1_title">智能垃圾分类存储机器人</h1>
+                    <p class="slide-desc" data-key="s1_desc">FPGA + 颜色传感器 + L610通信 · 全自动分类存储</p>
+                    <div class="slide-line"></div>
+                </div>
+            </div>
+            <!-- 第2张: 双传感器 + MCU -->
+            <div class="carousel-slide">
+                <div class="slide-media" style="display:flex;">
+                    <div style="flex:1;display:flex;flex-direction:column;">
+                        <img src="media/tcs34725.png" style="width:100%;height:50%;object-fit:cover;">
+                        <img src="media/hc-sr04.png" style="width:100%;height:50%;object-fit:cover;">
+                    </div>
+                    <img src="media/mcu.png" style="flex:1;height:100%;object-fit:cover;">
+                </div>
+                <div class="slide-overlay"></div>
+                <div class="slide-content">
+                    <span class="slide-tag" data-key="s2_tag">传感器融合</span>
+                    <h1 class="slide-title" data-key="s2_title">颜色与距离双重感知</h1>
+                    <p class="slide-desc" data-key="s2_desc">TCS34725颜色识别 + HC-SR04测距<br>串口指令下发，MCU解析并返回测量数据</p>
+                    <div class="slide-line"></div>
+                </div>
+            </div>
+            <!-- 第3张: L610 + 上位机 -->
+            <div class="carousel-slide">
+                <div class="slide-media" style="display:flex;">
+                    <img src="media/l610.jpg" style="flex:1;height:100%;object-fit:cover;border-right:1px solid rgba(255,255,255,0.1);">
+                    <img src="media/android-host.png" style="flex:1;height:100%;object-fit:cover;">
+                </div>
+                <div class="slide-overlay"></div>
+                <div class="slide-content">
+                    <span class="slide-tag" data-key="s3_tag">物联网</span>
+                    <h1 class="slide-title" data-key="s3_title">物联网实时监控</h1>
+                    <p class="slide-desc" data-key="s3_desc">L610无线通信 · Android上位机 · 云端告警</p>
+                    <div class="slide-line"></div>
+                </div>
+            </div>
+            <button class="carousel-btn prev">&#10094;</button>
+            <button class="carousel-btn next">&#10095;</button>
+            <div class="carousel-dots"><span class="dot active" data-index="0"></span><span class="dot" data-index="1"></span><span class="dot" data-index="2"></span></div>
+            <div class="carousel-scan-line"></div>
+        </div>
+    </section>
+
+    <section class="section-dark">
+        <div class="section-header"><span class="section-icon">▶</span><h2 data-key="video_title">演示视频</h2><div class="section-header-line"></div></div>
+        <div class="video-wrapper">
+            <video controls>
+                <source src="media/video.mp4" type="video/mp4">
+            </video>
+        </div>
+        <p style="text-align:center;margin-top:12px;color:var(--text-secondary);font-size:0.85rem;" data-key="video_hint">爆炸视图动画</p>
+    </section>
+
+    <section class="section-dark">
+        <div class="section-header"><span class="section-icon">⚙</span><h2 data-key="feat_title">核心功能</h2><div class="section-header-line"></div></div>
+        <div class="cards" id="featureCards"></div>
+    </section>
+
+    <section class="section-dark">
+        <div class="section-header"><span class="section-icon">🔗</span><h2 data-key="arch_title">系统架构</h2><div class="section-header-line"></div></div>
+        <div class="cards" id="archCards"></div>
+    </section>
+
+    <footer class="site-footer">
+        <p data-key="footer_text">© 2026 智能垃圾分类存储机器人项目组</p>
+        <p style="margin-top:4px;font-size:0.75rem;opacity:0.6;" data-key="footer_sub">团队成员</p>
+        <div class="footer-line"></div>
+    </footer>
+
+    <script>
+        // 轮播逻辑
+        (function(){
+            const slides=document.querySelectorAll('.carousel-slide');
+            const dots=document.querySelectorAll('.dot');
+            let idx=0,timer;
+            function go(n){
+                slides.forEach(s=>s.classList.remove('active'));
+                dots.forEach(d=>d.classList.remove('active'));
+                idx=(n+slides.length)%slides.length;
+                slides[idx].classList.add('active');
+                dots[idx].classList.add('active');
+            }
+            function next(){go(idx+1);}
+            function prev(){go(idx-1);}
+            function play(){clearInterval(timer);timer=setInterval(next,5000);}
+            function stop(){clearInterval(timer);}
+            document.querySelector('.carousel-btn.next').addEventListener('click',()=>{next();play();});
+            document.querySelector('.carousel-btn.prev').addEventListener('click',()=>{prev();play();});
+            dots.forEach(d=>d.addEventListener('click',()=>{
+                go(parseInt(d.dataset.index));
+                play();
+            }));
+            const ct=document.querySelector('.carousel-container');
+            ct.addEventListener('mouseenter',stop);
+            ct.addEventListener('mouseleave',play);
+            let tx=0;
+            ct.addEventListener('touchstart',e=>{tx=e.changedTouches[0].screenX;stop();},{passive:true});
+            ct.addEventListener('touchend',e=>{
+                if(e.changedTouches[0].screenX<tx-40)next();
+                if(e.changedTouches[0].screenX>tx+40)prev();
+                play();
+            });
+            play();
+        })();
+    </script>
+
+    <script>
+        // 动态生成卡片并绑定翻译
+        const featureData=[
+            {icon:'🧠',t:'c1t',d:'c1d',sub:'c1_sub'},
+            {icon:'🎨',t:'c2t',d:'c2d',sub:'c2_sub'},
+            {icon:'📡',t:'c3t',d:'c3d',sub:'c3_sub'},
+            {icon:'📱',t:'c4t',d:'c4d',sub:'c4_sub'},
+            {icon:'👤',t:'c5t',d:'c5d',sub:'c5_sub'},
+            {icon:'🔧',t:'c6t',d:'c6d',sub:'c6_sub'}
+        ];
+        const archData=[
+            {icon:'📱',t:'a1t',d:'a1d'},
+            {icon:'🔌',t:'a2t',d:'a2d'},
+            {icon:'⚡',t:'a3t',d:'a3d'},
+            {icon:'📡',t:'a4t',d:'a4d'},
+            {icon:'👁',t:'a5t',d:'a5d'},
+            {icon:'📏',t:'a6t',d:'a6d'}
+        ];
+        function buildCards(containerId, items){
+            const container=document.getElementById(containerId);
+            items.forEach(item=>{
+                const card=document.createElement('div');
+                card.className='card';
+                card.innerHTML=`<div class="card-icon">${item.icon}</div><h2 data-key="${item.t}"></h2><p data-key="${item.d}"></p>${item.sub?`<span style="color:var(--accent-cyan);font-size:0.8rem;display:block;margin-top:6px;" data-key="${item.sub}"></span>`:''}<div class="card-glow" style="position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(0,229,255,0.06) 0%,transparent 70%);pointer-events:none;opacity:0;transition:opacity 0.4s;"></div>`;
+                container.appendChild(card);
+            });
+        }
+        buildCards('featureCards',featureData);
+        buildCards('archCards',archData);
+    </script>
+
+    <script>
+        // 翻译系统
+        const zh={
+            nav_about:'关于',nav_team:'团队',nav_phil:'理念',
+            s1_tag:'智能分拣',s1_title:'智能垃圾分类存储机器人',s1_desc:'FPGA + 颜色传感器 + L610通信 · 全自动分类存储',
+            s2_tag:'传感器融合',s2_title:'颜色与距离双重感知',s2_desc:'TCS34725颜色识别 + HC-SR04测距<br>串口指令下发，MCU解析并返回测量数据',
+            s3_tag:'物联网',s3_title:'物联网实时监控',s3_desc:'L610无线通信 · Android上位机 · 云端告警',
+            video_title:'演示视频',video_hint:'爆炸视图动画',
+            feat_title:'核心功能',
+            c1t:'FPGA控制单元',c1d:'核心逻辑控制，驱动伺服电机，读取测距传感器数据',c1_sub:'Altera Cyclone IV',
+            c2t:'颜色传感器识别',c2d:'分辨3-4种颜色，确定垃圾种类，触发对应分类动作',c2_sub:'TCS3200 RGB Sensor',
+            c3t:'L610物联网通信',c3d:'实时上报垃圾桶状态至云端，满溢自动告警物业中心',c3_sub:'4G LTE Cat.1',
+            c4t:'Android上位机',c4d:'中英文语音引导，LCD显示余量，手机端实时查看状态',c4_sub:'Java + SQLite',
+            c5t:'测距安全防护',c5d:'确保用户在场且保持至少10cm距离，防止误触受伤',c5_sub:'HC-SR04 Ultrasonic',
+            c6t:'双模式运行',c6d:'操作模式全自动运行，维护模式GUI测试与调试',c6_sub:'Auto / Manual',
+            arch_title:'系统架构',
+            a1t:'Android上位机',a1d:'中英文切换 · 语音引导 · LCD显示 · 云端通信',
+            a2t:'微控制器单元',a2d:'命令生成 · 数据中转 · 与FPGA及云端通信',
+            a3t:'FPGA开发板',a3d:'电机控制 · 传感器读取 · 状态显示',
+            a4t:'L610无线模组',a4d:'4G通信 · 数据上报 · 告警推送',
+            a5t:'颜色传感器',a5d:'RGB识别 · 垃圾分类判定',
+            a6t:'测距传感器',a6d:'用户距离检测 · 10cm安全防护',
+            footer_text:'© 2026 智能垃圾分类存储机器人项目组',
+            footer_sub:'张豫江 · 徐舒涵 · 洪晨凯 · 王若旭 · 蒋康 · 董欣 · 康瑞麟'
+        };
+        const en={
+            nav_about:'About',nav_team:'Team',nav_phil:'Philosophy',
+            s1_tag:'Intelligent Sorting',s1_title:'Smart Garbage Sorting Robot',s1_desc:'FPGA + Color Sensor + L610 · Fully Automatic Sorting',
+            s2_tag:'Sensor Fusion',s2_title:'Dual Perception of Color & Distance',s2_desc:'TCS34725 color recognition + HC-SR04 ranging<br>Serial command interaction with MCU',
+            s3_tag:'IoT',s3_title:'Real-Time IoT Monitoring',s3_desc:'L610 Wireless · Android Host · Cloud Alert',
+            video_title:'Demo Video',video_hint:'Exploded View Animation',
+            feat_title:'Core Features',
+            c1t:'FPGA Control Unit',c1d:'Core logic control, servo motor drive, distance sensor reading',c1_sub:'Altera Cyclone IV',
+            c2t:'Color Sensor Recognition',c2d:'Distinguishes 3-4 colors, triggers sorting action',c2_sub:'TCS3200 RGB Sensor',
+            c3t:'L610 IoT Communication',c3d:'Real-time bin status reporting, auto alert when full',c3_sub:'4G LTE Cat.1',
+            c4t:'Android Host System',c4d:'Bilingual voice guidance, LCD capacity display, mobile monitoring',c4_sub:'Java + SQLite',
+            c5t:'Distance Safety Shield',c5d:'Ensures user presence at minimum 10cm distance',c5_sub:'HC-SR04 Ultrasonic',
+            c6t:'Dual-Mode Operation',c6d:'Automatic operation / GUI maintenance mode',c6_sub:'Auto / Manual',
+            arch_title:'System Architecture',
+            a1t:'Android Host',a1d:'Bilingual switch · Voice guidance · LCD · Cloud',
+            a2t:'Microcontroller Unit',a2d:'Command generation · Data relay · FPGA & Cloud',
+            a3t:'FPGA Board',a3d:'Motor control · Sensor reading · Status display',
+            a4t:'L610 Wireless Module',a4d:'4G communication · Data report · Alert push',
+            a5t:'Color Sensor',a5d:'RGB recognition · Waste classification',
+            a6t:'Distance Sensor',a6d:'User distance detection · 10cm safety',
+            footer_text:'© 2026 Smart Garbage Sorting Robot Team',
+            footer_sub:'Team Members'
+        };
+        const dict={zh,en};
+        let current='zh';
+        function applyLang(lang){
+            document.querySelectorAll('[data-key]').forEach(el=>{
+                const key=el.dataset.key;
+                if(dict[lang][key]) el.innerHTML=dict[lang][key];
+            });
+        }
+        document.getElementById('langBtn').addEventListener('click',()=>{
+            current=current==='zh'?'en':'zh';
+            document.getElementById('langBtn').textContent=current==='zh'?'🌐 English':'🌐 中文';
+            applyLang(current);
+        });
+        applyLang('zh');
+    </script>
+</body>
+</html>

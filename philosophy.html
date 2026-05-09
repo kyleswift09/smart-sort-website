@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公司理念 - 智能垃圾分类存储机器人</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #080d18; --bg-card: #111827;
+            --text-primary: #e8eaed; --text-secondary: #a0aab4;
+            --accent-cyan: #00e5ff; --glow-cyan: rgba(0,229,255,0.3);
+            --border-subtle: rgba(255,255,255,0.06);
+            --font-display: 'Orbitron','Noto Sans SC',sans-serif;
+            --font-body: 'Noto Sans SC','Segoe UI',sans-serif;
+            --font-mono: 'JetBrains Mono','Courier New',monospace;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{
+            font-family:var(--font-body);background:var(--bg-primary);
+            color:var(--text-primary);line-height:1.6;-webkit-font-smoothing:antialiased;
+        }
+        .bg-grid{
+            position:fixed;top:0;left:0;width:100vw;height:100vh;
+            pointer-events:none;z-index:0;opacity:0.04;
+            background-image:linear-gradient(rgba(255,255,255,0.3) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.3) 1px,transparent 1px);
+            background-size:50px 50px;
+        }
+        .top-nav{
+            position:fixed;top:0;left:0;right:0;z-index:1000;
+            background:rgba(8,13,24,0.85);backdrop-filter:blur(20px);
+            border-bottom:1px solid rgba(0,229,255,0.15);
+            padding:0 5%;display:flex;align-items:center;justify-content:space-between;height:60px;
+        }
+        .nav-brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;}
+        .nav-logo{
+            width:36px;height:36px;border-radius:8px;
+            background:linear-gradient(135deg,var(--accent-cyan),#2979ff);
+            display:flex;align-items:center;justify-content:center;font-size:1.2rem;
+            box-shadow:0 0 16px var(--glow-cyan);
+        }
+        .nav-title{font-family:var(--font-display);font-size:1.1rem;font-weight:600;letter-spacing:1.5px;}
+        .nav-title span{color:var(--accent-cyan);}
+        .nav-actions{display:flex;align-items:center;gap:16px;}
+        .nav-link{color:var(--text-secondary);text-decoration:none;font-size:0.9rem;font-family:var(--font-mono);padding:6px 12px;border-radius:6px;transition:0.2s;}
+        .nav-link:hover{color:var(--accent-cyan);background:rgba(0,229,255,0.08);}
+        .nav-link.active{color:var(--accent-cyan);border-bottom:2px solid var(--accent-cyan);}
+        .lang-btn{
+            background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.3);
+            color:var(--accent-cyan);padding:7px 16px;border-radius:20px;cursor:pointer;
+            font-family:var(--font-mono);font-size:0.8rem;transition:0.2s;
+        }
+        .lang-btn:hover{background:rgba(0,229,255,0.18);box-shadow:0 0 18px var(--glow-cyan);}
+        .page-content{position:relative;z-index:10;max-width:1100px;margin:0 auto;padding:100px 5% 50px;}
+        .page-hero{text-align:center;margin-bottom:50px;}
+        .page-hero h1{
+            font-family:var(--font-display);font-size:2.8rem;letter-spacing:3px;
+            text-shadow:0 0 30px var(--glow-cyan);
+        }
+        .hero-line{width:80px;height:3px;background:var(--accent-cyan);margin:16px auto;box-shadow:0 0 12px var(--accent-cyan);}
+        .page-hero p{color:var(--text-secondary);font-size:1.1rem;}
+
+        .quote-card{
+            background:var(--bg-card);border:1px solid var(--border-subtle);
+            border-radius:20px;padding:40px 30px;text-align:center;margin-bottom:40px;
+            position:relative;overflow:hidden;
+        }
+        .quote-card::before{
+            content:'';position:absolute;top:0;left:0;right:0;height:2px;
+            background:linear-gradient(90deg,transparent,var(--accent-cyan),transparent);
+        }
+        .quote-text{
+            font-family:var(--font-display);font-size:1.6rem;font-weight:700;
+            color:#fff;letter-spacing:2px;margin-bottom:12px;
+        }
+        .quote-sub{color:var(--accent-cyan);font-family:var(--font-mono);font-size:1rem;}
+
+        .values-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;margin-bottom:40px;}
+        .value-card{
+            background:var(--bg-card);border:1px solid var(--border-subtle);
+            border-radius:16px;padding:30px 22px;text-align:center;
+            transition:0.4s;position:relative;overflow:hidden;
+        }
+        .value-card:hover{
+            transform:translateY(-6px);border-color:rgba(0,229,255,0.4);
+            box-shadow:0 12px 32px rgba(0,0,0,0.5),0 0 30px var(--glow-cyan);
+        }
+        .value-icon{font-size:2.5rem;margin-bottom:14px;display:block;}
+        .value-card h3{font-family:var(--font-display);font-size:1.1rem;color:var(--accent-cyan);margin-bottom:8px;letter-spacing:1px;}
+        .value-card p{color:var(--text-secondary);font-size:0.9rem;line-height:1.6;}
+        .card-glow{
+            position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+            background:radial-gradient(circle,rgba(0,229,255,0.06) 0%,transparent 70%);
+            pointer-events:none;opacity:0;transition:opacity 0.4s;
+        }
+        .value-card:hover .card-glow{opacity:1;}
+
+        .mission-row{
+            display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:40px;
+        }
+        .mission-card{
+            background:var(--bg-card);border:1px solid var(--border-subtle);
+            border-radius:16px;padding:30px 24px;transition:0.4s;
+        }
+        .mission-card:hover{border-color:rgba(0,229,255,0.4);box-shadow:0 0 30px var(--glow-cyan);}
+        .mission-card h3{font-family:var(--font-display);color:var(--accent-cyan);margin-bottom:12px;letter-spacing:2px;}
+        .mission-card p{color:var(--text-secondary);font-size:0.95rem;line-height:1.7;}
+
+        footer{
+            position:relative;z-index:10;text-align:center;padding:30px 5%;
+            color:var(--text-secondary);font-size:0.85rem;border-top:1px solid var(--border-subtle);margin-top:40px;
+        }
+        footer .line{width:60px;height:2px;background:var(--accent-cyan);margin:10px auto 0;opacity:0.5;}
+
+        @media(max-width:768px){
+            .mission-row{grid-template-columns:1fr;}
+            .page-hero h1{font-size:2rem;}
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <nav class="top-nav">
+        <a href="index.html" class="nav-brand">
+            <div class="nav-logo">♻</div>
+            <div class="nav-title">Smart<span>Sort</span></div>
+        </a>
+        <div class="nav-actions">
+            <a href="index.html" class="nav-link" data-key="nav_home">首页</a>
+            <a href="about.html" class="nav-link" data-key="nav_about">关于</a>
+            <a href="team.html" class="nav-link" data-key="nav_team">团队</a>
+            <a href="philosophy.html" class="nav-link active" data-key="nav_phil">理念</a>
+            <button class="lang-btn" id="langBtn">🌐 English</button>
+        </div>
+    </nav>
+
+    <div class="page-content">
+        <div class="page-hero">
+            <h1 data-key="title">公司理念</h1>
+            <div class="hero-line"></div>
+            <p data-key="sub">垃圾分对有限公司 · SortRight Co., Ltd.</p>
+        </div>
+
+        <div class="quote-card">
+            <p class="quote-text" data-key="quote">"垃圾分对，绿色未来"</p>
+            <p class="quote-sub" data-key="quote_sub">Sort Right, Green Future</p>
+        </div>
+
+        <div class="mission-row">
+            <div class="mission-card">
+                <h3>🎯 <span data-key="mission_title">我们的使命</span></h3>
+                <p data-key="mission_desc">用智能硬件和物联网技术，重新定义垃圾分类方式。让每一份垃圾都去到该去的地方，让分类零误差。</p>
+            </div>
+            <div class="mission-card">
+                <h3>🔭 <span data-key="vision_title">我们的愿景</span></h3>
+                <p data-key="vision_desc">让每一座城市、每一个社区，都拥有全自动、零差错的垃圾分类存储系统，用科技守护绿色地球。</p>
+            </div>
+        </div>
+
+        <div class="values-grid">
+            <div class="value-card">
+                <div class="card-glow"></div>
+                <span class="value-icon">🎯</span>
+                <h3 data-key="v1_title">精准</h3>
+                <p data-key="v1_desc">颜色传感器毫秒级识别，分类准确率行业领先</p>
+            </div>
+            <div class="value-card">
+                <div class="card-glow"></div>
+                <span class="value-icon">🧠</span>
+                <h3 data-key="v2_title">智能</h3>
+                <p data-key="v2_desc">FPGA核心控制，全自动运行，无需人工干预</p>
+            </div>
+            <div class="value-card">
+                <div class="card-glow"></div>
+                <span class="value-icon">📡</span>
+                <h3 data-key="v3_title">互联</h3>
+                <p data-key="v3_desc">L610实时上报，垃圾桶状态一手掌握</p>
+            </div>
+            <div class="value-card">
+                <div class="card-glow"></div>
+                <span class="value-icon">🌍</span>
+                <h3 data-key="v4_title">责任</h3>
+                <p data-key="v4_desc">用科技守护环境，为绿色地球贡献力量</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p data-key="footer">© 2026 智能垃圾分类存储机器人项目组</p>
+        <div class="line"></div>
+    </footer>
+<script>
+(function(){var btn=document.getElementById('langBtn');if(!btn)return;var lang='zh';
+var zh={'nav_home':'首页','nav_about':'关于','nav_team':'团队','nav_phil':'理念',
+'title':'公司理念','sub':'垃圾分对有限公司 · SortRight Co., Ltd.',
+'quote':'"垃圾分对，绿色未来"','quote_sub':'Sort Right, Green Future',
+'mission_title':'我们的使命','mission_desc':'用智能硬件和物联网技术，重新定义垃圾分类方式。让每一份垃圾都去到该去的地方，让分类零误差。',
+'vision_title':'我们的愿景','vision_desc':'让每一座城市、每一个社区，都拥有全自动、零差错的垃圾分类存储系统，用科技守护绿色地球。',
+'v1_title':'精准','v1_desc':'颜色传感器毫秒级识别，分类准确率行业领先',
+'v2_title':'智能','v2_desc':'FPGA核心控制，全自动运行，无需人工干预',
+'v3_title':'互联','v3_desc':'L610实时上报，垃圾桶状态一手掌握',
+'v4_title':'责任','v4_desc':'用科技守护环境，为绿色地球贡献力量',
+'footer':'© 2026 智能垃圾分类存储机器人项目组'};
+var en={'nav_home':'Home','nav_about':'About','nav_team':'Team','nav_phil':'Philosophy',
+'title':'Our Philosophy','sub':'SortRight Co., Ltd.',
+'quote':'"Sort Right, Green Future"','quote_sub':'Sort Right, Green Future',
+'mission_title':'Our Mission','mission_desc':'Redefine garbage sorting with intelligent hardware and IoT technology. Let every piece of waste go where it belongs, with zero error.',
+'vision_title':'Our Vision','vision_desc':'Every city, every community equipped with fully automatic, zero-error garbage sorting systems. Protecting the green earth with technology.',
+'v1_title':'Precision','v1_desc':'Millisecond color sensor recognition, industry-leading accuracy',
+'v2_title':'Intelligence','v2_desc':'FPGA core control, fully automatic, no human intervention',
+'v3_title':'Connectivity','v3_desc':'L610 real-time reporting, bin status at your fingertips',
+'v4_title':'Responsibility','v4_desc':'Protecting the environment with technology, for a green planet',
+'footer':'© 2026 Smart Garbage Sorting Robot Team'};
+var data={zh:zh,en:en};
+btn.addEventListener('click',function(){lang=lang==='zh'?'en':'zh';btn.textContent=lang==='zh'?'🌐 English':'🌐 中文';
+document.querySelectorAll('[data-key]').forEach(function(el){var k=el.getAttribute('data-key');if(data[lang][k])el.textContent=data[lang][k];});});
+})();
+</script>
+</body>
+</html>
